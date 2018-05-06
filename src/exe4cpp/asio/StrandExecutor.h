@@ -109,9 +109,10 @@ public:
         return io_service;
     }
 
-    action_t wrap(const action_t& action)
+    template <typename handler_t>
+    asio::detail::wrapped_handler<asio::strand, handler_t, asio::detail::is_continuation_if_running> wrap(const handler_t& handler)
     {
-        return strand.wrap(action);
+        return strand.wrap(handler);
     }
 
 private:

@@ -155,7 +155,7 @@ public:
         }
     }
 
-    steady_time_t next_timer_expiration_rel() const
+    duration_t next_timer_expiration_rel() const
     {
         auto lt = [](const std::shared_ptr<MockTimer>& lhs, const std::shared_ptr<MockTimer>& rhs)
         {
@@ -164,11 +164,11 @@ public:
         auto min = std::min_element(this->timers.begin(), this->timers.end(), lt);
         if (min == this->timers.end())
         {
-            return steady_time_t::max();
+            return duration_t::max();
         }
         else
         {
-            return steady_time_t((*min)->expires_at() - this->current_time);
+            return (*min)->expires_at() - this->current_time;
         }
     }
 

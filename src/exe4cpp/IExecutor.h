@@ -28,6 +28,9 @@
 #include "exe4cpp/Timer.h"
 #include "exe4cpp/ISteadyTimeSource.h"
 
+/**
+* @brief exe4cpp header-only library namespace
+*/
 namespace exe4cpp
 {
 

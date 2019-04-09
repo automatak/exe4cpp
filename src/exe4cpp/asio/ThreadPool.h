@@ -40,7 +40,7 @@ namespace exe4cpp
 class ThreadPool
 {
 public:
-    typedef std::function<void(uint32_t)> thread_init_t;
+    using thread_init_t = std::function<void(uint32_t)>;
 
     ThreadPool(
         const std::shared_ptr<asio::io_service>& io_service,

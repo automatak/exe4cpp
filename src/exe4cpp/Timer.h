@@ -38,7 +38,10 @@ namespace exe4cpp
 class Timer final
 {
 public:
-    Timer(const std::shared_ptr<ITimer>& timer) : timer{timer}
+    Timer() : timer{}
+    {}
+
+    explicit Timer(const std::shared_ptr<ITimer>& timer) : timer{timer}
     {}
 
     inline bool cancel()

@@ -35,18 +35,18 @@ class AsioTimer final : public exe4cpp::ITimer
     friend class StrandExecutor;
 
 public:
-    AsioTimer(const std::shared_ptr<asio::io_service>& io_service) :
-        io_service{io_service},
-        impl{*io_service}
+    AsioTimer(const std::shared_ptr<asio::io_context>& io_context) :
+        io_context{io_context},
+        impl{*io_context}
     {}
 
     // Uncopyable
     AsioTimer(const AsioTimer&) = delete;
     AsioTimer& operator=(const AsioTimer&) = delete;
 
-    static std::shared_ptr<AsioTimer> create(const std::shared_ptr<asio::io_service>& io_service)
+    static std::shared_ptr<AsioTimer> create(const std::shared_ptr<asio::io_context>& io_context)
     {
-        return std::make_shared<AsioTimer>(io_service);
+        return std::make_shared<AsioTimer>(io_context);
     }
 
     virtual void cancel() override
@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    const std::shared_ptr<asio::io_service> io_service;
+    const std::shared_ptr<asio::io_context> io_context;
     asio::basic_waitable_timer<std::chrono::steady_clock> impl;
 };
 

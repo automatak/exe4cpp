@@ -22,11 +22,10 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef EXE4CPP_ASIO_BASICEXECUTOR_H
-#define EXE4CPP_ASIO_BASICEXECUTOR_H
+#ifndef EXE4CPP_ASIO_ASIOEXECUTOR_H
+#define EXE4CPP_ASIO_ASIOEXECUTOR_H
 
-#include "exe4cpp/asio/AsioExecutor.h"
-#include "exe4cpp/asio/AsioTimer.h"
+#include "exe4cpp/IExecutor.h"
 
 #include "asio.hpp"
 
@@ -40,59 +39,28 @@ namespace exe4cpp
 * Should only be used when asio::io_context::run() is called from a single thread
 *
 */
-class BasicExecutor final :
-    public exe4cpp::AsioExecutor,
-    public std::enable_shared_from_this<BasicExecutor>
+class AsioExecutor :
+    public exe4cpp::IExecutor
 {
 public:
-    BasicExecutor(const std::shared_ptr<asio::io_context>& io_context) : exe4cpp::AsioExecutor{io_context}
+    AsioExecutor(const std::shared_ptr<asio::io_context>& io_context) : io_context{io_context}
     {}
 
+    virtual ~AsioExecutor() = default;
+
     // Uncopyable
-    BasicExecutor(const BasicExecutor&) = delete;
-    BasicExecutor& operator=(const BasicExecutor&) = delete;
+    AsioExecutor(const AsioExecutor&) = delete;
+    AsioExecutor& operator=(const AsioExecutor&) = delete;
 
-    static std::shared_ptr<BasicExecutor> create(const std::shared_ptr<asio::io_context>& io_context)
+    // lots of ASIO components must be initialized with a reference to the io_context
+    inline std::shared_ptr<asio::io_context> get_context()
     {
-        return std::make_shared<BasicExecutor>(io_context);
+        return io_context;
     }
 
-    // ---- Implement IExecutor -----
-
-    virtual Timer start(const duration_t& duration, const action_t& action) override
-    {
-        return this->start(this->get_time() + duration, action);
-    }
-
-    virtual Timer start(const steady_time_t& expiration, const action_t& action) override
-    {
-        const auto timer = AsioTimer::create(this->io_context);
-
-        timer->impl.expires_at(expiration);
-
-        // neither the executor nor the timer can be deleted while the timer is still active
-        auto callback = [timer, action, self = shared_from_this()](const std::error_code & ec)
-        {
-            if (!ec)   // an error indicate timer was canceled
-            {
-                action();
-            }
-        };
-
-        timer->impl.async_wait(callback);
-
-        return Timer(timer);
-    }
-
-    virtual void post(const action_t& action) override
-    {
-        this->io_context->post(action);
-    }
-
-    virtual steady_time_t get_time() override
-    {
-        return std::chrono::steady_clock::now();
-    }
+protected:
+    // we hold a shared_ptr to the io_context so that it cannot dissapear while the executor is still around
+    const std::shared_ptr<asio::io_context> io_context;
 };
 
 }

@@ -8,6 +8,7 @@ set(exe4cpp_public_headers
 )
 
 set(exe4cpp_asio_public_headers
+    ./exe4cpp/asio/AsioExecutor.h
     ./exe4cpp/asio/AsioTimer.h
     ./exe4cpp/asio/BasicExecutor.h
     ./exe4cpp/asio/StrandExecutor.h

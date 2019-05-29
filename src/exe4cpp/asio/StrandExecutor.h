@@ -25,7 +25,7 @@
 #ifndef EXE4CPP_ASIO_STRANDEXECUTOR_H
 #define EXE4CPP_ASIO_STRANDEXECUTOR_H
 
-#include "exe4cpp/IExecutor.h"
+#include "exe4cpp/asio/AsioExecutor.h"
 #include "exe4cpp/asio/AsioTimer.h"
 
 #include "asio.hpp"
@@ -41,25 +41,25 @@ namespace exe4cpp
 *
 */
 class StrandExecutor final :
-    public exe4cpp::IExecutor,
+    public exe4cpp::AsioExecutor,
     public std::enable_shared_from_this<StrandExecutor>
 {
 
 public:
 
-    StrandExecutor(const std::shared_ptr<asio::io_service>& io_service) :
-        io_service{io_service},
-        strand{*io_service}
+    StrandExecutor(const std::shared_ptr<asio::io_context>& io_context) :
+        AsioExecutor{io_context},
+        strand{*io_context}
     {}
 
-    static std::shared_ptr<StrandExecutor> create(const std::shared_ptr<asio::io_service>& io_service)
+    static std::shared_ptr<StrandExecutor> create(const std::shared_ptr<asio::io_context>& io_context)
     {
-        return std::make_shared<StrandExecutor>(io_service);
+        return std::make_shared<StrandExecutor>(io_context);
     }
 
     std::shared_ptr<StrandExecutor> fork()
     {
-        return create(this->io_service);
+        return create(this->io_context);
     }
 
     // ---- Implement IExecutor -----
@@ -71,7 +71,7 @@ public:
 
     virtual Timer start(const steady_time_t& expiration, const action_t& action) override
     {
-        const auto timer = AsioTimer::create(this->io_service);
+        const auto timer = AsioTimer::create(this->io_context);
 
         timer->impl.expires_at(expiration);
 
@@ -104,21 +104,14 @@ public:
         return std::chrono::steady_clock::now();
     }
 
-    inline std::shared_ptr<asio::io_service> get_service()
-    {
-        return io_service;
-    }
-
     template <typename handler_t>
-    asio::detail::wrapped_handler<asio::strand, handler_t, asio::detail::is_continuation_if_running> wrap(const handler_t& handler)
+    asio::detail::wrapped_handler<asio::io_context::strand, handler_t, asio::detail::is_continuation_if_running> wrap(const handler_t& handler)
     {
         return strand.wrap(handler);
     }
 
 private:
-    // we hold a shared_ptr to the io_service so that it cannot dissapear while the strand is still executing
-    const std::shared_ptr<asio::io_service> io_service;
-    asio::strand strand;
+    asio::io_context::strand strand;
 };
 
 }

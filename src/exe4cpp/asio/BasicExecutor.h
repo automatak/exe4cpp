@@ -59,12 +59,12 @@ public:
 
     // ---- Implement IExecutor -----
 
-    virtual Timer start(const duration_t& duration, const action_t& action) override
+    Timer start(const duration_t& duration, const action_t& action) final
     {
         return this->start(this->get_time() + duration, action);
     }
 
-    virtual Timer start(const steady_time_t& expiration, const action_t& action) override
+    Timer start(const steady_time_t& expiration, const action_t& action) final
     {
         const auto timer = AsioTimer::create(this->io_context);
 
@@ -84,14 +84,19 @@ public:
         return Timer(timer);
     }
 
-    virtual void post(const action_t& action) override
+    void post(const action_t& action) final
     {
         this->io_context->post(action);
     }
 
-    virtual steady_time_t get_time() override
+    steady_time_t get_time() final
     {
         return std::chrono::steady_clock::now();
+    }
+
+    bool is_running_in_this_thread() final
+    {
+        false;
     }
 };
 

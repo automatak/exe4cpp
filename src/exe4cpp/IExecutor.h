@@ -28,6 +28,8 @@
 #include "exe4cpp/Timer.h"
 #include "exe4cpp/ISteadyTimeSource.h"
 
+#include <future>
+
 /**
 * @brief exe4cpp header-only library namespace
 */
@@ -55,6 +57,58 @@ public:
 
     /// @return Thread-safe way to post an event to be handled asynchronously
     virtual void post(const action_t& action) = 0;
+
+    // Helper functions
+    template<class T> T return_from(const std::function<T()>& action)
+    {
+        if (is_running_in_this_thread())
+        {
+            return action();
+        }
+
+        std::promise<T> ready;
+
+        auto future = ready.get_future();
+
+        auto run = [&] { ready.set_value(action()); };
+
+        post(run);
+
+        future.wait();
+
+        return future.get();
+    }
+
+    void block_until(const std::function<void()>& action)
+    {
+        if (is_running_in_this_thread())
+        {
+            action();
+            return;
+        }
+
+        std::promise<bool> ready;
+
+        auto future = ready.get_future();
+
+        auto run = [&] {
+            action();
+            ready.set_value(true);
+        };
+
+        post(run);
+
+        future.wait();
+    }
+
+    void block_until_and_flush(const std::function<void()>& action)
+    {
+        this->block_until(action);
+        this->block_until([]() {});
+    }
+
+protected:
+    virtual bool is_running_in_this_thread() = 0;
 };
 
 }

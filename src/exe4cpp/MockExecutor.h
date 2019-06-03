@@ -54,12 +54,12 @@ private:
         {}
 
         // implement ITimer
-        void cancel() override
+        void cancel() final
         {
             source->cancel(this);
         }
 
-        steady_time_t expires_at() override
+        steady_time_t expires_at() final
         {
             return this->time;
         }
@@ -75,26 +75,31 @@ public:
 
     // ------ Implement IExecutor ------
 
-    virtual Timer start(const duration_t& delay, const action_t& action) override
+    Timer start(const duration_t& delay, const action_t& action) final
     {
         return start(current_time + delay, action);
     }
 
-    virtual Timer start(const steady_time_t& time, const action_t& action) override
+    Timer start(const steady_time_t& time, const action_t& action) final
     {
         const auto timer = std::make_shared<MockTimer>(this, time, action);
         this->timers.push_back(timer);
         return Timer{timer};
     }
 
-    virtual void post(const action_t& action) override
+    void post(const action_t& action) final
     {
         this->post_queue.push_back(action);
     }
 
-    virtual steady_time_t get_time() override
+    steady_time_t get_time() final
     {
         return current_time;
+    }
+
+    bool is_running_in_this_thread() final
+    {
+        return false;
     }
 
     /**	@return true if an action was run. */

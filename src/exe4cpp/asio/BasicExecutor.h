@@ -96,7 +96,7 @@ public:
 
     bool is_running_in_this_thread() final
     {
-        false;
+        return false;
     }
 };
 

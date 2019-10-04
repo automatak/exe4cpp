@@ -26,6 +26,7 @@
 #define EXE4CPP_ASIO_BASICEXECUTOR_H
 
 #include "exe4cpp/asio/AsioExecutor.h"
+#include "exe4cpp/asio/AsioSystemTimer.h"
 #include "exe4cpp/asio/AsioTimer.h"
 
 #include "asio.hpp"
@@ -67,6 +68,26 @@ public:
     Timer start(const steady_time_t& expiration, const action_t& action) final
     {
         const auto timer = AsioTimer::create(this->io_context);
+
+        timer->impl.expires_at(expiration);
+
+        // neither the executor nor the timer can be deleted while the timer is still active
+        auto callback = [timer, action, self = shared_from_this()](const std::error_code & ec)
+        {
+            if (!ec)   // an error indicate timer was canceled
+            {
+                action();
+            }
+        };
+
+        timer->impl.async_wait(callback);
+
+        return Timer(timer);
+    }
+
+    Timer start(const system_time_t& expiration, const action_t& action) final
+    {
+        const auto timer = AsioSystemTimer::create(this->io_context);
 
         timer->impl.expires_at(expiration);
 

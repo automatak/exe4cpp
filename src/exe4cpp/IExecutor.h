@@ -55,6 +55,9 @@ public:
     /// @return start a new timer based on an absolute timestamp of the steady clock
     virtual Timer start(const steady_time_t& expiration, const action_t& action) = 0;
 
+    /// @return start a new timer based on an absolute timestamp of the system clock
+    virtual Timer start(const system_time_t& expiration, const action_t& action) = 0;
+
     /// @return Thread-safe way to post an event to be handled asynchronously
     virtual void post(const action_t& action) = 0;
 

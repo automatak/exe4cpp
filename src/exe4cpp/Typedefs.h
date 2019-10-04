@@ -31,10 +31,11 @@
 namespace exe4cpp
 {
 
-typedef std::function<void()> action_t;
+using action_t = std::function<void()>;
 
-typedef std::chrono::steady_clock::duration duration_t;
-typedef std::chrono::steady_clock::time_point steady_time_t;
+using duration_t = std::chrono::steady_clock::duration;
+using steady_time_t = std::chrono::steady_clock::time_point;
+using system_time_t = std::chrono::system_clock::time_point;
 
 }
 

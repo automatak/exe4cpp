@@ -87,6 +87,13 @@ public:
         return Timer{timer};
     }
 
+    Timer start(const system_time_t& time, const action_t& action) final
+    {
+        const auto timer = std::make_shared<MockTimer>(this, get_time() + (time - std::chrono::system_clock::now()), action);
+        this->timers.push_back(timer);
+        return Timer{timer};
+    }
+
     void post(const action_t& action) final
     {
         this->post_queue.push_back(action);

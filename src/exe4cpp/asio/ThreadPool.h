@@ -61,15 +61,12 @@ public:
     ) : io_service{io_service},
         on_thread_start{on_thread_start},
         on_thread_exit{on_thread_exit},
-        infinite_timer{*io_service}
+        executor_guard{io_service->get_executor()}
     {
         if (concurrency == 0)
         {
             concurrency = 1;
         }
-
-        infinite_timer.expires_at(std::chrono::steady_clock::time_point::max());
-        infinite_timer.async_wait([](const std::error_code&) {});
 
         for (uint32_t i = 0; i < concurrency; ++i)
         {
@@ -92,7 +89,7 @@ public:
         if (!this->is_shutdown)
         {
             this->is_shutdown = true;
-            this->infinite_timer.cancel();
+            executor_guard.reset();
             for (auto& thread : threads)
             {
                 thread->join();
@@ -117,7 +114,7 @@ private:
 
     bool is_shutdown = false;
 
-    asio::basic_waitable_timer<std::chrono::steady_clock> infinite_timer;
+    asio::executor_work_guard<asio::io_context::executor_type> executor_guard;
     std::vector<std::unique_ptr<std::thread>> threads;
 };
 
